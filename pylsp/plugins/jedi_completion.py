@@ -28,6 +28,8 @@ _TYPE_MAP = {
     "statement": lsp.CompletionItemKind.Variable,
 }
 
+COMPLETION_CACHE = {}
+
 # Types of parso nodes for which snippet is not included in the completion
 _IMPORTS = ("import_name", "import_from")
 
@@ -135,6 +137,22 @@ def pylsp_completions(config, document, position):
 
     return ready_completions or None
 
+@hookimpl
+def pyls_completion_detail(config, item):
+    d = COMPLETION_CACHE.get(item)
+    if d:
+      completion = {
+        'label': '', #_label(d),
+        'kind': _TYPE_MAP.get(d.type),
+        'detail': '', #_detail(d),
+        'documentation': _utils.format_docstring(d.docstring()),
+        'sortText': '', #_sort_text(d),
+        'insertText': d.name
+      }
+      return completion
+    else:
+      log.info('Completion missing')
+      return None
 
 @hookimpl
 def pylsp_completion_item_resolve(config, completion_item, document):
@@ -229,6 +247,7 @@ def _format_completion(
     resolve_label_or_snippet=False,
     snippet_support=False,
 ):
+    COMPLETION_CACHE[d.name] = d
     completion = {
         "label": _label(d, resolve_label_or_snippet),
         "kind": _TYPE_MAP.get(d.type),
