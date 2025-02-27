@@ -138,7 +138,7 @@ def pylsp_completions(config, document, position):
     return ready_completions or None
 
 @hookimpl
-def pyls_completion_detail(config, item):
+def pylsp_completion_detail(config, item):
     d = COMPLETION_CACHE.get(item)
     if d:
       completion = {

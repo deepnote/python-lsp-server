@@ -29,7 +29,7 @@ def pylsp_completions(config, workspace, document, position, ignored_names) -> N
 
 
 @hookspec
-def pyls_completion_detail(config, item) -> None:
+def pylsp_completion_detail(config, item) -> None:
     pass
 
 

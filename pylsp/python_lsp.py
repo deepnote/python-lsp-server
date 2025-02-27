@@ -424,7 +424,7 @@ class PythonLSPServer(MethodDispatcher):
         return {"isIncomplete": True, "items": flatten(completions)}
     
     def completion_detail(self, item):
-        detail = self._hook('pyls_completion_detail', item=item)
+        detail = self._hook('pylsp_completion_detail', item=item)
         return detail
 
     def completion_item_resolve(self, completion_item):
