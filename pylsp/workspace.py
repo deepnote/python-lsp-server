@@ -10,6 +10,7 @@ import uuid
 from contextlib import contextmanager
 from threading import RLock
 from typing import Callable, Generator, List, Optional
+import importlib.metadata
 
 import jedi
 
@@ -392,6 +393,18 @@ class Workspace:
 
 
 class Document:
+    DO_NOT_PRELOAD_MODULES = ['attrs', 'backcall', 'bleach', 'certifi', 'chardet', 'cycler', 'decorator', 'defusedxml', 
+                              'docopt', 'entrypoints', 'idna', 'importlib-metadata', 'ipykernel', 'ipython-genutils', 
+                              'ipython', 'ipywidgets', 'jedi', 'jinja2', 'joblib', 'jsonschema', 'jupyter-client', 
+                              'jupyter-core', 'markupsafe', 'mistune', 'nbconvert', 'nbformat', 'notebook', 'packaging', 
+                              'pandocfilters', 'parso', 'pexpect', 'pickleshare', 'pip', 'pipreqs', 'pluggy', 
+                              'prometheus-client', 'prompt-toolkit', 'ptyprocess', 'pygments', 'pyparsing', 
+                              'pyrsistent', 'python-dateutil', 'python-jsonrpc-server', 'python-language-server', 
+                              'pytz', 'pyzmq', 'send2trash', 'setuptools', 'six', 'terminado', 'testpath', 
+                              'threadpoolctl', 'tornado', 'traitlets', 'ujson', 'wcwidth', 'webencodings', 'wheel', 
+                              'widgetsnbextension', 'yarg', 'zipp']
+
+
     def __init__(
         self,
         uri,
@@ -416,6 +429,15 @@ class Document:
         self._extra_sys_path = extra_sys_path or []
         self._rope_project_builder = rope_project_builder
         self._lock = RLock()
+
+        jedi.settings.cache_directory = '.cache/jedi/'
+        jedi.settings.use_filesystem_cache = True
+        jedi.settings.auto_import_modules = self._get_auto_import_modules()
+
+    def _get_auto_import_modules(self):
+      installed_packages_list = [dist.metadata['Name'] for dist in importlib.metadata.distributions()]
+      auto_import_modules = [pkg for pkg in installed_packages_list if pkg not in self.DO_NOT_PRELOAD_MODULES]
+      return auto_import_modules
 
     def __str__(self):
         return str(self.uri)
@@ -546,12 +568,11 @@ class Document:
             env_vars = os.environ.copy()
         env_vars.pop("PYTHONPATH", None)
 
-        environment = self.get_enviroment(environment_path, env_vars=env_vars)
         sys_path = self.sys_path(
             environment_path, env_vars, prioritize_extra_paths, extra_paths
         )
 
-        project_path = self._workspace.root_path
+        import __main__
 
         # Extend sys_path with document's path if requested
         if use_document_path:
@@ -560,15 +581,14 @@ class Document:
         kwargs = {
             "code": self.source,
             "path": self.path,
-            "environment": environment if environment_path else None,
-            "project": jedi.Project(path=project_path, sys_path=sys_path),
+            'namespaces': [__main__.__dict__]
         }
 
         if position:
             # Deprecated by Jedi to use in Script() constructor
             kwargs += _utils.position_to_jedi_linecolumn(self, position)
 
-        return jedi.Script(**kwargs)
+        return jedi.Interpreter(**kwargs)
 
     def get_enviroment(self, environment_path=None, env_vars=None):
         # TODO(gatesn): #339 - make better use of jedi environments, they seem pretty powerful

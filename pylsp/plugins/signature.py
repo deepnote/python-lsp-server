@@ -45,7 +45,7 @@ def pylsp_signature_help(config, document, position):
         "label": function_sig,
         "documentation": _utils.format_docstring(
             s.docstring(raw=True), markup_kind=preferred_markup_kind
-        ),
+        )["value"],
     }
 
     # If there are params, add those
@@ -55,7 +55,7 @@ def pylsp_signature_help(config, document, position):
                 "label": p.name,
                 "documentation": _utils.format_docstring(
                     _param_docs(docstring, p.name), markup_kind=preferred_markup_kind
-                ),
+                )["value"],
             }
             for p in s.params
         ]

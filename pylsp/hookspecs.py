@@ -28,6 +28,11 @@ def pylsp_completions(config, workspace, document, position, ignored_names) -> N
     pass
 
 
+@hookspec
+def pylsp_completion_detail(config, item) -> None:
+    pass
+
+
 @hookspec(firstresult=True)
 def pylsp_completion_item_resolve(config, workspace, document, completion_item) -> None:
     pass

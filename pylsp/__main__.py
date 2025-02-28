@@ -74,9 +74,11 @@ def main() -> None:
     _configure_logger(args.verbose, args.log_config, args.log_file)
 
     if args.tcp:
-        start_tcp_lang_server(
-            args.host, args.port, args.check_parent_process, PythonLSPServer
-        )
+        while True:
+            start_tcp_lang_server(
+                args.host, args.port, args.check_parent_process, PythonLSPServer
+            )
+            time.sleep(0.500)
     elif args.ws:
         start_ws_lang_server(args.port, args.check_parent_process, PythonLSPServer)
     else:
