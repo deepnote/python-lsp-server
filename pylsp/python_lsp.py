@@ -117,6 +117,8 @@ def start_ws_lang_server(port, check_parent_process, handler_class) -> None:
         ) from e
 
     with ThreadPoolExecutor(max_workers=10) as tpool:
+        send_queue = None
+        loop = None
 
         async def pylsp_ws(websocket):
             log.debug("Creating LSP object")
@@ -146,14 +148,20 @@ def start_ws_lang_server(port, check_parent_process, handler_class) -> None:
             """Handler to send responses of  processed requests to respective web socket clients"""
             try:
                 payload = json.dumps(message, ensure_ascii=False)
-                asyncio.run(websocket.send(payload))
+                loop.call_soon_threadsafe(send_queue.put_nowait, (payload, websocket))
             except Exception as e:
                 log.exception("Failed to write message %s, %s", message, str(e))
 
         async def run_server():
+            nonlocal send_queue, loop
+            send_queue = asyncio.Queue()
+            loop = asyncio.get_running_loop()
+
             async with websockets.serve(pylsp_ws, port=port):
-                # runs forever
-                await asyncio.Future()
+                while 1:
+                    # Wait until payload is available for sending
+                    payload, websocket = await send_queue.get()
+                    await websocket.send(payload)
 
         asyncio.run(run_server())
 
