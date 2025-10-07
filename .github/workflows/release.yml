@@ -18,6 +18,10 @@ jobs:
       matrix:
         PYTHON_VERSION: ["3.8"]
     timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: write
+      id-token: write
     steps:
       - uses: actions/cache@v4
         with:
