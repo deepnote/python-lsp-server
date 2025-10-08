@@ -6,7 +6,7 @@ requires = ["setuptools>=61.2.0", "setuptools_scm[toml]>=3.4.3"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "python-lsp-server"
+name = "deepnote-python-lsp-server"
 authors = [{name = "Python Language Server Contributors"}]
 description = "Python Language Server for the Language Server Protocol"
 readme = "README.md"
