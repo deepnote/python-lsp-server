@@ -7,8 +7,8 @@ import socketserver
 import threading
 import uuid
 from functools import partial
-from typing import Any
 from hashlib import sha256
+from typing import Any
 
 try:
     import ujson as json
@@ -432,7 +432,7 @@ class PythonLSPServer(MethodDispatcher):
             "pylsp_completions", doc_uri, position=position, ignored_names=ignored_names
         )
         return {"isIncomplete": True, "items": flatten(completions)}
-    
+
     def completion_detail(self, item):
         detail = self._hook('pylsp_completion_detail', item=item)
         return detail

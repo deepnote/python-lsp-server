@@ -2,6 +2,7 @@
 # Copyright 2021- Python Language Server Contributors.
 
 import functools
+import importlib.metadata
 import io
 import logging
 import os
@@ -11,7 +12,6 @@ from collections.abc import Generator
 from contextlib import contextmanager
 from threading import RLock
 from typing import Callable, Optional
-import importlib.metadata
 
 import jedi
 
@@ -394,15 +394,15 @@ class Workspace:
 
 
 class Document:
-    DO_NOT_PRELOAD_MODULES = ['attrs', 'backcall', 'bleach', 'certifi', 'chardet', 'cycler', 'decorator', 'defusedxml', 
-                              'docopt', 'entrypoints', 'idna', 'importlib-metadata', 'ipykernel', 'ipython-genutils', 
-                              'ipython', 'ipywidgets', 'jedi', 'jinja2', 'joblib', 'jsonschema', 'jupyter-client', 
-                              'jupyter-core', 'markupsafe', 'mistune', 'nbconvert', 'nbformat', 'notebook', 'packaging', 
-                              'pandocfilters', 'parso', 'pexpect', 'pickleshare', 'pip', 'pipreqs', 'pluggy', 
-                              'prometheus-client', 'prompt-toolkit', 'ptyprocess', 'pygments', 'pyparsing', 
-                              'pyrsistent', 'python-dateutil', 'python-jsonrpc-server', 'python-language-server', 
-                              'pytz', 'pyzmq', 'send2trash', 'setuptools', 'six', 'terminado', 'testpath', 
-                              'threadpoolctl', 'tornado', 'traitlets', 'ujson', 'wcwidth', 'webencodings', 'wheel', 
+    DO_NOT_PRELOAD_MODULES = ['attrs', 'backcall', 'bleach', 'certifi', 'chardet', 'cycler', 'decorator', 'defusedxml',
+                              'docopt', 'entrypoints', 'idna', 'importlib-metadata', 'ipykernel', 'ipython-genutils',
+                              'ipython', 'ipywidgets', 'jedi', 'jinja2', 'joblib', 'jsonschema', 'jupyter-client',
+                              'jupyter-core', 'markupsafe', 'mistune', 'nbconvert', 'nbformat', 'notebook', 'packaging',
+                              'pandocfilters', 'parso', 'pexpect', 'pickleshare', 'pip', 'pipreqs', 'pluggy',
+                              'prometheus-client', 'prompt-toolkit', 'ptyprocess', 'pygments', 'pyparsing',
+                              'pyrsistent', 'python-dateutil', 'python-jsonrpc-server', 'python-language-server',
+                              'pytz', 'pyzmq', 'send2trash', 'setuptools', 'six', 'terminado', 'testpath',
+                              'threadpoolctl', 'tornado', 'traitlets', 'ujson', 'wcwidth', 'webencodings', 'wheel',
                               'widgetsnbextension', 'yarg', 'zipp']
 
 
