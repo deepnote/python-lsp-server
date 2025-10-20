@@ -30,7 +30,9 @@ def pylsp_hover(config, document, position):
     supported_markup_kinds = hover_capabilities.get("contentFormat", ["markdown"])
     preferred_markup_kind = _utils.choose_markup_kind(supported_markup_kinds)
 
-    doc = _utils.format_docstring(definition.docstring(raw=True), preferred_markup_kind)["value"]
+    doc = _utils.format_docstring(
+        definition.docstring(raw=True), preferred_markup_kind
+    )["value"]
 
     # Find first exact matching signature
     signature = next(
@@ -44,14 +46,14 @@ def pylsp_hover(config, document, position):
 
     contents = []
     if signature:
-        contents.append({
-            'language': 'python',
-            'value': signature,
-        })
+        contents.append(
+            {
+                "language": "python",
+                "value": signature,
+            }
+        )
 
     if doc:
         contents.append(doc)
 
-    return {
-        "contents": contents or ''
-    }
+    return {"contents": contents or ""}

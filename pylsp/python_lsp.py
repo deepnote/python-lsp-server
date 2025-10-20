@@ -49,29 +49,29 @@ class _StreamHandlerWrapper(socketserver.StreamRequestHandler):
         self.SHUTDOWN_CALL()
 
     def auth(self, cb):
-        token = ''
+        token = ""
         if "JUPYTER_TOKEN" in os.environ:
-          token = os.environ["JUPYTER_TOKEN"]
+            token = os.environ["JUPYTER_TOKEN"]
         else:
-          log.warn('! Missing jupyter token !')
+            log.warn("! Missing jupyter token !")
 
         data = self.rfile.readline()
         try:
-            auth_req = json.loads(data.decode().split('\n')[0])
+            auth_req = json.loads(data.decode().split("\n")[0])
         except:
-            log.error('Error parsing authentication message')
-            auth_error_msg = { 'msg': 'AUTH_ERROR' }
+            log.error("Error parsing authentication message")
+            auth_error_msg = {"msg": "AUTH_ERROR"}
             self.wfile.write(json.dumps(auth_error_msg).encode())
             return
 
         hashed_token = sha256(token.encode()).hexdigest()
-        if auth_req.get('token') == hashed_token:
-            auth_success_msg = { 'msg': 'AUTH_SUCCESS' }
+        if auth_req.get("token") == hashed_token:
+            auth_success_msg = {"msg": "AUTH_SUCCESS"}
             self.wfile.write(json.dumps(auth_success_msg).encode())
             cb()
         else:
-            log.info('Failed to authenticate: invalid credentials')
-            auth_invalid_msg = { 'msg': 'AUTH_INVALID_CRED' }
+            log.info("Failed to authenticate: invalid credentials")
+            auth_invalid_msg = {"msg": "AUTH_INVALID_CRED"}
             self.wfile.write(json.dumps(auth_invalid_msg).encode())
 
 
@@ -434,7 +434,7 @@ class PythonLSPServer(MethodDispatcher):
         return {"isIncomplete": True, "items": flatten(completions)}
 
     def completion_detail(self, item):
-        detail = self._hook('pylsp_completion_detail', item=item)
+        detail = self._hook("pylsp_completion_detail", item=item)
         return detail
 
     def completion_item_resolve(self, completion_item):
@@ -580,7 +580,7 @@ class PythonLSPServer(MethodDispatcher):
         return flatten(self._hook("pylsp_folding_range", doc_uri))
 
     def m_completion_item__resolve(self, **completionItem):
-        return self.completion_detail(completionItem.get('label'))
+        return self.completion_detail(completionItem.get("label"))
 
     def m_notebook_document__did_open(
         self, notebookDocument=None, cellTextDocuments=None, **_kwargs

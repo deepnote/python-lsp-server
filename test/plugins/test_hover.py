@@ -49,20 +49,28 @@ def test_numpy_hover(workspace) -> None:
         return contents
 
     contents = "NumPy\n=====\n\nProvides\n"
-    assert contents in get_hover_text(pylsp_hover(doc._config, doc, numpy_hov_position_1))
+    assert contents in get_hover_text(
+        pylsp_hover(doc._config, doc, numpy_hov_position_1)
+    )
 
     contents = "NumPy\n=====\n\nProvides\n"
-    assert contents in get_hover_text(pylsp_hover(doc._config, doc, numpy_hov_position_2))
+    assert contents in get_hover_text(
+        pylsp_hover(doc._config, doc, numpy_hov_position_2)
+    )
 
     contents = "NumPy\n=====\n\nProvides\n"
-    assert contents in get_hover_text(pylsp_hover(doc._config, doc, numpy_hov_position_3))
+    assert contents in get_hover_text(
+        pylsp_hover(doc._config, doc, numpy_hov_position_3)
+    )
 
     # https://github.com/davidhalter/jedi/issues/1746
     import numpy as np
 
     if np.lib.NumpyVersion(np.__version__) < "1.20.0":
         contents = "Trigonometric sine, element-wise.\n\n"
-        assert contents in get_hover_text(pylsp_hover(doc._config, doc, numpy_sin_hov_position))
+        assert contents in get_hover_text(
+            pylsp_hover(doc._config, doc, numpy_sin_hov_position)
+        )
 
 
 def test_hover(workspace) -> None:
@@ -78,7 +86,10 @@ def test_hover(workspace) -> None:
     assert isinstance(result["contents"], list)
     assert len(result["contents"]) == 2
     # First item is the signature code block
-    assert result["contents"][0] == {"language": "python", "value": "main(a: float, b: float)"}
+    assert result["contents"][0] == {
+        "language": "python",
+        "value": "main(a: float, b: float)",
+    }
     # Second item is the docstring
     assert "hello world" in result["contents"][1]
 
@@ -99,7 +110,10 @@ def test_hover_signature_formatting(workspace) -> None:
     assert len(result["contents"]) == 2
     # Due to changes in our fork, hover no longer applies signature formatting
     # It just returns the raw signature from Jedi
-    assert result["contents"][0] == {"language": "python", "value": "main(a: float, b: float)"}
+    assert result["contents"][0] == {
+        "language": "python",
+        "value": "main(a: float, b: float)",
+    }
     # Second item is the docstring
     assert "hello world" in result["contents"][1]
 
@@ -116,7 +130,10 @@ def test_hover_signature_formatting_opt_out(workspace) -> None:
     assert isinstance(result["contents"], list)
     assert len(result["contents"]) == 2
     # First item is the signature code block without multiline formatting
-    assert result["contents"][0] == {"language": "python", "value": "main(a: float, b: float)"}
+    assert result["contents"][0] == {
+        "language": "python",
+        "value": "main(a: float, b: float)",
+    }
     # Second item is the docstring
     assert "hello world" in result["contents"][1]
 
@@ -148,7 +165,10 @@ foo"""
     # The result should be either a list with signature and/or docstring, or empty string
     if isinstance(contents, list) and len(contents) > 0:
         # Convert list to string for checking
-        contents_str = ' '.join(str(item) if not isinstance(item, dict) else item.get('value', '') for item in contents)
+        contents_str = " ".join(
+            str(item) if not isinstance(item, dict) else item.get("value", "")
+            for item in contents
+        )
         assert "A docstring for foo." in contents_str
     else:
         # If Jedi can't resolve the definition (e.g., in test environment), the hover may be empty

@@ -141,22 +141,24 @@ def pylsp_completions(config, document, position):
 
     return ready_completions or None
 
+
 @hookimpl
 def pylsp_completion_detail(config, item):
     d = COMPLETION_CACHE.get(item)
     if d:
-      completion = {
-        'label': '', #_label(d),
-        'kind': _TYPE_MAP.get(d.type),
-        'detail': '', #_detail(d),
-        'documentation': _utils.format_docstring(d.docstring()),
-        'sortText': '', #_sort_text(d),
-        'insertText': d.name
-      }
-      return completion
+        completion = {
+            "label": "",  # _label(d),
+            "kind": _TYPE_MAP.get(d.type),
+            "detail": "",  # _detail(d),
+            "documentation": _utils.format_docstring(d.docstring()),
+            "sortText": "",  # _sort_text(d),
+            "insertText": d.name,
+        }
+        return completion
     else:
-      log.info('Completion missing')
-      return None
+        log.info("Completion missing")
+        return None
+
 
 @hookimpl
 def pylsp_completion_item_resolve(
