@@ -54,11 +54,5 @@ def pylsp_hover(config, document, position):
         contents.append(doc)
 
     return {
-        "contents": _utils.format_docstring(
-            # raw docstring returns only doc, without signature
-            definition.docstring(raw=True),
-            preferred_markup_kind,
-            signatures=[signature] if signature else None,
-            signature_config=signature_config,
-        )
+        "contents": contents or ''
     }

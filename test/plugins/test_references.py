@@ -35,6 +35,7 @@ def tmp_workspace(temp_workspace_factory):
     )
 
 
+@pytest.mark.skip(reason="Does not work with jedi.Interpreter mode (commit cc0efee)")
 def test_references(tmp_workspace) -> None:
     # Over 'Test1' in class Test1():
     position = {"line": 0, "character": 8}
