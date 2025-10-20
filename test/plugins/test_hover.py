@@ -107,7 +107,10 @@ def test_hover_signature_formatting(workspace) -> None:
     contents = result["contents"]
     if isinstance(contents, list):
         assert len(contents) == 2
-        assert contents[0] == {"language": "python", "value": "main(a: float, b: float)"}
+        assert contents[0] == {
+            "language": "python",
+            "value": "main(a: float, b: float)",
+        }
         assert "hello world" in contents[1]
     else:
         assert isinstance(contents, dict) and "value" in contents
@@ -126,7 +129,10 @@ def test_hover_signature_formatting_opt_out(workspace) -> None:
     contents = result["contents"]
     if isinstance(contents, list):
         assert len(contents) == 2
-        assert contents[0] == {"language": "python", "value": "main(a: float, b: float)"}
+        assert contents[0] == {
+            "language": "python",
+            "value": "main(a: float, b: float)",
+        }
         assert "hello world" in contents[1]
     else:
         assert isinstance(contents, dict) and "value" in contents
