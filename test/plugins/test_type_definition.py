@@ -1,9 +1,10 @@
 # Copyright 2021- Python Language Server Contributors.
 
+import pytest
+
 from pylsp import uris
 from pylsp.plugins.type_definition import pylsp_type_definition
 from pylsp.workspace import Document
-import pytest
 
 DOC_URI = uris.from_fs_path(__file__)
 DOC = """\
