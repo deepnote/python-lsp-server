@@ -2,15 +2,16 @@
 # Copyright 2021- Python Language Server Contributors.
 
 import functools
+import importlib.metadata
 import io
 import logging
 import os
 import re
 import uuid
+from collections.abc import Generator
 from contextlib import contextmanager
 from threading import RLock
-from typing import Callable, Generator, List, Optional
-import importlib.metadata
+from typing import Callable, Optional
 
 import jedi
 
@@ -393,17 +394,69 @@ class Workspace:
 
 
 class Document:
-    DO_NOT_PRELOAD_MODULES = ['attrs', 'backcall', 'bleach', 'certifi', 'chardet', 'cycler', 'decorator', 'defusedxml', 
-                              'docopt', 'entrypoints', 'idna', 'importlib-metadata', 'ipykernel', 'ipython-genutils', 
-                              'ipython', 'ipywidgets', 'jedi', 'jinja2', 'joblib', 'jsonschema', 'jupyter-client', 
-                              'jupyter-core', 'markupsafe', 'mistune', 'nbconvert', 'nbformat', 'notebook', 'packaging', 
-                              'pandocfilters', 'parso', 'pexpect', 'pickleshare', 'pip', 'pipreqs', 'pluggy', 
-                              'prometheus-client', 'prompt-toolkit', 'ptyprocess', 'pygments', 'pyparsing', 
-                              'pyrsistent', 'python-dateutil', 'python-jsonrpc-server', 'python-language-server', 
-                              'pytz', 'pyzmq', 'send2trash', 'setuptools', 'six', 'terminado', 'testpath', 
-                              'threadpoolctl', 'tornado', 'traitlets', 'ujson', 'wcwidth', 'webencodings', 'wheel', 
-                              'widgetsnbextension', 'yarg', 'zipp']
-
+    DO_NOT_PRELOAD_MODULES = [
+        "attrs",
+        "backcall",
+        "bleach",
+        "certifi",
+        "chardet",
+        "cycler",
+        "decorator",
+        "defusedxml",
+        "docopt",
+        "entrypoints",
+        "idna",
+        "importlib-metadata",
+        "ipykernel",
+        "ipython-genutils",
+        "ipython",
+        "ipywidgets",
+        "jedi",
+        "jinja2",
+        "joblib",
+        "jsonschema",
+        "jupyter-client",
+        "jupyter-core",
+        "markupsafe",
+        "mistune",
+        "nbconvert",
+        "nbformat",
+        "notebook",
+        "packaging",
+        "pandocfilters",
+        "parso",
+        "pexpect",
+        "pickleshare",
+        "pip",
+        "pipreqs",
+        "pluggy",
+        "prometheus-client",
+        "prompt-toolkit",
+        "ptyprocess",
+        "pygments",
+        "pyparsing",
+        "pyrsistent",
+        "python-dateutil",
+        "python-jsonrpc-server",
+        "python-language-server",
+        "pytz",
+        "pyzmq",
+        "send2trash",
+        "setuptools",
+        "six",
+        "terminado",
+        "testpath",
+        "threadpoolctl",
+        "tornado",
+        "traitlets",
+        "ujson",
+        "wcwidth",
+        "webencodings",
+        "wheel",
+        "widgetsnbextension",
+        "yarg",
+        "zipp",
+    ]
 
     def __init__(
         self,
@@ -430,14 +483,20 @@ class Document:
         self._rope_project_builder = rope_project_builder
         self._lock = RLock()
 
-        jedi.settings.cache_directory = '.cache/jedi/'
+        jedi.settings.cache_directory = ".cache/jedi/"
         jedi.settings.use_filesystem_cache = True
         jedi.settings.auto_import_modules = self._get_auto_import_modules()
 
     def _get_auto_import_modules(self):
-      installed_packages_list = [dist.metadata['Name'] for dist in importlib.metadata.distributions()]
-      auto_import_modules = [pkg for pkg in installed_packages_list if pkg not in self.DO_NOT_PRELOAD_MODULES]
-      return auto_import_modules
+        installed_packages_list = [
+            dist.metadata["Name"] for dist in importlib.metadata.distributions()
+        ]
+        auto_import_modules = [
+            pkg
+            for pkg in installed_packages_list
+            if pkg not in self.DO_NOT_PRELOAD_MODULES
+        ]
+        return auto_import_modules
 
     def __str__(self):
         return str(self.uri)
@@ -458,7 +517,7 @@ class Document:
     @lock
     def source(self):
         if self._source is None:
-            with io.open(self.path, "r", encoding="utf-8") as f:
+            with open(self.path, encoding="utf-8") as f:
                 return f.read()
         return self._source
 
@@ -482,7 +541,8 @@ class Document:
         end_col = change_range["end"]["character"]
 
         # Check for an edit occuring at the very end of the file
-        if start_line == len(self.lines):
+        lines = self.lines
+        if start_line == len(lines):
             self._source = self.source + text
             return
 
@@ -491,7 +551,7 @@ class Document:
         # Iterate over the existing document until we hit the edit range,
         # at which point we write the new text, then loop until we hit
         # the end of the range and continue writing.
-        for i, line in enumerate(self.lines):
+        for i, line in enumerate(lines):
             if i < start_line:
                 new.write(line)
                 continue
@@ -515,10 +575,11 @@ class Document:
 
     def word_at_position(self, position):
         """Get the word under the cursor returning the start and end positions."""
-        if position["line"] >= len(self.lines):
+        lines = self.lines
+        if position["line"] >= len(lines):
             return ""
 
-        line = self.lines[position["line"]]
+        line = lines[position["line"]]
         i = position["character"]
         # Split word in two
         start = line[:i]
@@ -581,7 +642,7 @@ class Document:
         kwargs = {
             "code": self.source,
             "path": self.path,
-            'namespaces': [__main__.__dict__]
+            "namespaces": [__main__.__dict__],
         }
 
         if position:
@@ -643,7 +704,7 @@ class Notebook:
     def __str__(self):
         return "Notebook with URI '%s'" % str(self.uri)
 
-    def add_cells(self, new_cells: List, start: int) -> None:
+    def add_cells(self, new_cells: list, start: int) -> None:
         self.cells[start:start] = new_cells
 
     def remove_cells(self, start: int, delete_count: int) -> None:

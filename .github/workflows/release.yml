@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        PYTHON_VERSION: ["3.10"]
+        PYTHON_VERSION: ["3.9"]
     timeout-minutes: 10
     permissions:
       contents: read
@@ -30,7 +30,9 @@ jobs:
           restore-keys: ${{ runner.os }}-${{ matrix.PYTHON_VERSION }}-pip-
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.ref }}
           fetch-depth: 0
+          fetch-tags: true
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.PYTHON_VERSION }}

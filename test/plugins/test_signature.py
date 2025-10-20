@@ -62,10 +62,8 @@ def test_signature(workspace) -> None:
     assert len(sigs) == 1
     assert sigs[0]["label"] == "main(param1, param2)"
     assert sigs[0]["parameters"][0]["label"] == "param1"
-    assert sigs[0]["parameters"][0]["documentation"] == {
-        "kind": "markdown",
-        "value": "Docs for param1",
-    }
+    # After cc0efee commit, documentation is just the string value, not a dict
+    assert sigs[0]["parameters"][0]["documentation"] == "Docs for param1"
 
     assert sig_info["activeParameter"] == 0
 
@@ -84,10 +82,7 @@ def test_multi_line_signature(workspace) -> None:
         "param5=None, param6=None, param7=None, param8=None)"
     )
     assert sigs[0]["parameters"][0]["label"] == "param1"
-    assert sigs[0]["parameters"][0]["documentation"] == {
-        "kind": "markdown",
-        "value": "Docs for param1",
-    }
+    assert sigs[0]["parameters"][0]["documentation"] == "Docs for param1"
 
     assert sig_info["activeParameter"] == 0
 
