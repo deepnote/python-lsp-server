@@ -7,7 +7,7 @@ import socketserver
 import threading
 import uuid
 from functools import partial
-from typing import Any, Dict, List
+from typing import Any
 from hashlib import sha256
 
 try:
@@ -137,6 +137,8 @@ def start_ws_lang_server(port, check_parent_process, handler_class) -> None:
         ) from e
 
     with ThreadPoolExecutor(max_workers=10) as tpool:
+        send_queue = None
+        loop = None
 
         async def pylsp_ws(websocket):
             log.debug("Creating LSP object")
@@ -166,14 +168,20 @@ def start_ws_lang_server(port, check_parent_process, handler_class) -> None:
             """Handler to send responses of  processed requests to respective web socket clients"""
             try:
                 payload = json.dumps(message, ensure_ascii=False)
-                asyncio.run(websocket.send(payload))
+                loop.call_soon_threadsafe(send_queue.put_nowait, (payload, websocket))
             except Exception as e:
                 log.exception("Failed to write message %s, %s", message, str(e))
 
         async def run_server():
+            nonlocal send_queue, loop
+            send_queue = asyncio.Queue()
+            loop = asyncio.get_running_loop()
+
             async with websockets.serve(pylsp_ws, port=port):
-                # runs forever
-                await asyncio.Future()
+                while 1:
+                    # Wait until payload is available for sending
+                    payload, websocket = await send_queue.get()
+                    await websocket.send(payload)
 
         asyncio.run(run_server())
 
@@ -249,6 +257,7 @@ class PythonLSPServer(MethodDispatcher):
     def m_shutdown(self, **_kwargs) -> None:
         for workspace in self.workspaces.values():
             workspace.close()
+        self._hook("pylsp_shutdown")
         self._shutdown = True
 
     def m_invalid_request_after_shutdown(self, **_kwargs):
@@ -296,6 +305,7 @@ class PythonLSPServer(MethodDispatcher):
             "documentRangeFormattingProvider": True,
             "documentSymbolProvider": True,
             "definitionProvider": True,
+            "typeDefinitionProvider": True,
             "executeCommandProvider": {
                 "commands": flatten(self._hook("pylsp_commands"))
             },
@@ -402,7 +412,7 @@ class PythonLSPServer(MethodDispatcher):
     def m_initialized(self, **_kwargs) -> None:
         self._hook("pylsp_initialized")
 
-    def code_actions(self, doc_uri: str, range: Dict, context: Dict):
+    def code_actions(self, doc_uri: str, range: dict, context: dict):
         return flatten(
             self._hook("pylsp_code_actions", doc_uri, range=range, context=context)
         )
@@ -435,6 +445,9 @@ class PythonLSPServer(MethodDispatcher):
 
     def definitions(self, doc_uri, position):
         return flatten(self._hook("pylsp_definitions", doc_uri, position=position))
+
+    def type_definition(self, doc_uri, position):
+        return self._hook("pylsp_type_definition", doc_uri, position=position)
 
     def document_symbols(self, doc_uri):
         return flatten(self._hook("pylsp_document_symbols", doc_uri))
@@ -495,7 +508,7 @@ class PythonLSPServer(MethodDispatcher):
         random_uri = str(uuid.uuid4())
 
         # cell_list helps us map the diagnostics back to the correct cell later.
-        cell_list: List[Dict[str, Any]] = []
+        cell_list: list[dict[str, Any]] = []
 
         offset = 0
         total_source = ""
@@ -734,6 +747,12 @@ class PythonLSPServer(MethodDispatcher):
                 if item.get("data", {}).get("doc_uri") == temp_uri:
                     item["data"]["doc_uri"] = cellDocument.uri
 
+            # Copy LAST_JEDI_COMPLETIONS to cell document so that completionItem/resolve will work
+            tempDocument = workspace.get_document(temp_uri)
+            cellDocument.shared_data["LAST_JEDI_COMPLETIONS"] = (
+                tempDocument.shared_data.get("LAST_JEDI_COMPLETIONS", None)
+            )
+
             return completions
 
     def m_text_document__completion(self, textDocument=None, position=None, **_kwargs):
@@ -785,6 +804,11 @@ class PythonLSPServer(MethodDispatcher):
         if isinstance(document, Cell):
             return self._cell_document__definition(document, position, **_kwargs)
         return self.definitions(textDocument["uri"], position)
+
+    def m_text_document__type_definition(
+        self, textDocument=None, position=None, **_kwargs
+    ):
+        return self.type_definition(textDocument["uri"], position)
 
     def m_text_document__document_highlight(
         self, textDocument=None, position=None, **_kwargs
